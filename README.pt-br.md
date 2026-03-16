@@ -2,7 +2,7 @@
 
 > Motor de recomendação de filmes e músicas com ML aplicado, exposto via API REST documentada com Swagger.
 
-[![CI/CD](https://github.com/yourusername/recommender-api/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/recommender-api/actions)
+[![CI/CD](https://github.com/HenriMello/recommender-api/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/recommender-api/actions)
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi)](https://fastapi.tiangolo.com)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)](https://docker.com)
@@ -81,7 +81,7 @@ Dados brutos (ratings)
 ### 1. Clonar o repositório
 
 ```bash
-git clone https://github.com/yourusername/recommender-api.git
+git clone https://github.com/HenriMello/recommender-api.git
 cd recommender-api
 ```
 
