@@ -1,4 +1,4 @@
-# ── Stage 1: Build ────────────────────────────────────────────────────────────
+# ── Stage 1: Build & Train ────────────────────────────────────────────────────
 FROM python:3.11-slim AS builder
 
 WORKDIR /app
@@ -10,7 +10,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
-    pip install --prefix=/install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy source and train models during build
+COPY app/ ./app/
+COPY scripts/ ./scripts/
+
+RUN mkdir -p models data
+
+# Train models (MovieLens auto-downloaded, music uses synthetic data)
+RUN python scripts/train.py --domain all
 
 
 # ── Stage 2: Runtime ──────────────────────────────────────────────────────────
@@ -19,14 +28,17 @@ FROM python:3.11-slim AS runtime
 WORKDIR /app
 
 # Copy installed packages from builder
-COPY --from=builder /install /usr/local
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application source
 COPY app/ ./app/
 COPY scripts/ ./scripts/
 
-# Create models directory (volume mount in production)
-RUN mkdir -p models data
+# Copy pre-trained models from builder
+COPY --from=builder /app/models ./models
+
+RUN mkdir -p data
 
 # Non-root user for security
 RUN useradd -m appuser && chown -R appuser /app
