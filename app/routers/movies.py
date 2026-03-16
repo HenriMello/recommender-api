@@ -1,9 +1,13 @@
 from fastapi import APIRouter, HTTPException, Query
-from app.schemas.schemas import (
-    MovieRecommendRequest, RecommendationResponse, RecommendationItem, MovieItem
-)
+
 from app.ml.model_manager import ModelManager
 from app.ml.recommender import RecommenderEngine
+from app.schemas.schemas import (
+    MovieItem,
+    MovieRecommendRequest,
+    RecommendationItem,
+    RecommendationResponse,
+)
 
 router = APIRouter()
 
@@ -13,7 +17,7 @@ def _get_engine() -> RecommenderEngine:
     if not model:
         raise HTTPException(
             status_code=503,
-            detail="Movies model not loaded. Run `python scripts/train.py --domain movies` first."
+            detail="Movies model not loaded. Run `python scripts/train.py --domain movies` first.",
         )
     return RecommenderEngine(
         svd_model=model["svd"],
@@ -83,12 +87,14 @@ async def list_movies(
 
     metadata = model["item_metadata"]
     items = []
-    for mid, info in list(metadata.items())[skip: skip + limit]:
-        items.append(MovieItem(
-            movie_id=mid,
-            title=info.get("title", str(mid)),
-            genres=info.get("genres", []),
-        ))
+    for mid, info in list(metadata.items())[skip : skip + limit]:
+        items.append(
+            MovieItem(
+                movie_id=mid,
+                title=info.get("title", str(mid)),
+                genres=info.get("genres", []),
+            )
+        )
     return items
 
 

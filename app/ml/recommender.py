@@ -7,10 +7,10 @@ Supports:
   - hybrid:      weighted combination of both
 """
 
+import logging
+
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-from typing import Optional
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -21,24 +21,32 @@ class RecommenderEngine:
     to provide user-based, item-based, and hybrid recommendations.
     """
 
-    def __init__(self, svd_model, interaction_matrix: np.ndarray,
-                 item_ids: list, user_ids: list, item_metadata: dict):
+    def __init__(
+        self,
+        svd_model,
+        interaction_matrix: np.ndarray,
+        item_ids: list,
+        user_ids: list,
+        item_metadata: dict,
+    ):
         self.svd = svd_model
-        self.interaction_matrix = interaction_matrix          # shape (n_users, n_items)
-        self.item_ids = item_ids                              # list of raw item ids
-        self.user_ids = user_ids                              # list of raw user ids
-        self.item_metadata = item_metadata                    # {item_id: {title, genres/tags, ...}}
-        self._item_similarity: Optional[np.ndarray] = None   # computed lazily
+        self.interaction_matrix = interaction_matrix  # shape (n_users, n_items)
+        self.item_ids = item_ids  # list of raw item ids
+        self.user_ids = user_ids  # list of raw user ids
+        self.item_metadata = item_metadata  # {item_id: {title, genres/tags, ...}}
+        self._item_similarity: np.ndarray | None = None  # computed lazily
 
     # ── Item similarity matrix (cosine on item vectors from SVD) ─────────────
 
     def _get_item_similarity(self) -> np.ndarray:
         if self._item_similarity is None:
-            item_factors = np.array([
-                self.svd.qi[self.svd.trainset.to_inner_iid(str(iid))]
-                for iid in self.item_ids
-                if str(iid) in self.svd.trainset._raw2inner_id_items
-            ])
+            item_factors = np.array(
+                [
+                    self.svd.qi[self.svd.trainset.to_inner_iid(str(iid))]
+                    for iid in self.item_ids
+                    if str(iid) in self.svd.trainset._raw2inner_id_items
+                ]
+            )
             self._item_similarity = cosine_similarity(item_factors)
         return self._item_similarity
 
@@ -71,8 +79,7 @@ class RecommenderEngine:
     def recommend_similar_items(self, item_id: int, top_n: int = 10) -> list[dict]:
         """Return items most similar to the given item."""
         valid_ids = [
-            iid for iid in self.item_ids
-            if str(iid) in self.svd.trainset._raw2inner_id_items
+            iid for iid in self.item_ids if str(iid) in self.svd.trainset._raw2inner_id_items
         ]
         if item_id not in valid_ids:
             logger.warning(f"Unknown item_id={item_id}")
@@ -81,15 +88,14 @@ class RecommenderEngine:
         sim_matrix = self._get_item_similarity()
         idx = valid_ids.index(item_id)
         scores = sim_matrix[idx]
-        top_indices = np.argsort(scores)[::-1][1:top_n + 1]
+        top_indices = np.argsort(scores)[::-1][1 : top_n + 1]
 
         results = [(valid_ids[i], float(scores[i])) for i in top_indices]
         return self._format(results, max_score=1.0)
 
     # ── Hybrid ────────────────────────────────────────────────────────────────
 
-    def recommend_hybrid(self, user_id: int, top_n: int = 10,
-                         alpha: float = 0.6) -> list[dict]:
+    def recommend_hybrid(self, user_id: int, top_n: int = 10, alpha: float = 0.6) -> list[dict]:
         """
         Blend user-based (alpha) and item-based popularity signals (1-alpha).
         """
@@ -119,10 +125,12 @@ class RecommenderEngine:
         out = []
         for iid, raw_score in pairs:
             meta = self.item_metadata.get(iid, {})
-            out.append({
-                "id": iid,
-                "title": meta.get("title", str(iid)),
-                "score": round(float(raw_score) / max_score, 4),
-                "genres": meta.get("genres") or meta.get("tags"),
-            })
+            out.append(
+                {
+                    "id": iid,
+                    "title": meta.get("title", str(iid)),
+                    "score": round(float(raw_score) / max_score, 4),
+                    "genres": meta.get("genres") or meta.get("tags"),
+                }
+            )
         return out

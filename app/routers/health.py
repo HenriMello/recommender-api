@@ -1,6 +1,7 @@
 from fastapi import APIRouter
-from app.schemas.schemas import HealthResponse, ModelInfoResponse
+
 from app.ml.model_manager import ModelManager
+from app.schemas.schemas import HealthResponse, ModelInfoResponse
 
 router = APIRouter()
 
@@ -30,6 +31,7 @@ async def health():
 )
 async def model_info(domain: str):
     from fastapi import HTTPException
+
     model = ModelManager.get(domain)
     if not model:
         raise HTTPException(status_code=404, detail=f"Model '{domain}' not loaded.")

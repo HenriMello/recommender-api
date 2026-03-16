@@ -1,9 +1,13 @@
 from fastapi import APIRouter, HTTPException, Query
-from app.schemas.schemas import (
-    MusicRecommendRequest, RecommendationResponse, RecommendationItem, ArtistItem
-)
+
 from app.ml.model_manager import ModelManager
 from app.ml.recommender import RecommenderEngine
+from app.schemas.schemas import (
+    ArtistItem,
+    MusicRecommendRequest,
+    RecommendationItem,
+    RecommendationResponse,
+)
 
 router = APIRouter()
 
@@ -13,7 +17,7 @@ def _get_engine() -> RecommenderEngine:
     if not model:
         raise HTTPException(
             status_code=503,
-            detail="Music model not loaded. Run `python scripts/train.py --domain music` first."
+            detail="Music model not loaded. Run `python scripts/train.py --domain music` first.",
         )
     return RecommenderEngine(
         svd_model=model["svd"],
@@ -83,12 +87,14 @@ async def list_artists(
 
     metadata = model["item_metadata"]
     items = []
-    for aid, info in list(metadata.items())[skip: skip + limit]:
-        items.append(ArtistItem(
-            artist_id=aid,
-            name=info.get("title", str(aid)),
-            tags=info.get("tags"),
-        ))
+    for aid, info in list(metadata.items())[skip : skip + limit]:
+        items.append(
+            ArtistItem(
+                artist_id=aid,
+                name=info.get("title", str(aid)),
+                tags=info.get("tags"),
+            )
+        )
     return items
 
 

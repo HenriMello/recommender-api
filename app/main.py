@@ -1,10 +1,11 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from contextlib import asynccontextmanager
 
-from app.routers import movies, music, health
 from app.ml.model_manager import ModelManager
+from app.routers import health, movies, music
 
 
 @asynccontextmanager

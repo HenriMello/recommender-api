@@ -9,17 +9,18 @@ Tests cover:
   - 503 behavior when models are not loaded
 """
 
-import pytest
+from unittest.mock import MagicMock
+
 import numpy as np
-from unittest.mock import MagicMock, patch
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
 from app.ml.model_manager import ModelManager
 from app.ml.recommender import RecommenderEngine
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
+
 
 def _make_fake_svd(user_ids, item_ids):
     """Create a minimal SVD mock that satisfies the engine."""
@@ -48,14 +49,10 @@ def _make_fake_model(domain: str) -> dict:
 
     if domain == "movies":
         metadata = {
-            iid: {"title": f"Movie {iid}", "genres": ["Action", "Drama"]}
-            for iid in item_ids
+            iid: {"title": f"Movie {iid}", "genres": ["Action", "Drama"]} for iid in item_ids
         }
     else:
-        metadata = {
-            iid: {"title": f"Artist {iid}", "tags": ["rock", "pop"]}
-            for iid in item_ids
-        }
+        metadata = {iid: {"title": f"Artist {iid}", "tags": ["rock", "pop"]} for iid in item_ids}
 
     return {
         "svd": _make_fake_svd(user_ids, item_ids),
@@ -90,6 +87,7 @@ def client():
 
 
 # ── Health ────────────────────────────────────────────────────────────────────
+
 
 class TestHealth:
     def test_health_ok(self, client):
@@ -128,6 +126,7 @@ class TestHealth:
 
 # ── Movies ────────────────────────────────────────────────────────────────────
 
+
 class TestMovies:
     def test_list_movies(self, client):
         r = client.get("/movies/")
@@ -153,7 +152,9 @@ class TestMovies:
         assert r.status_code == 404
 
     def test_recommend_user_based(self, client):
-        r = client.post("/movies/recommend", json={"user_id": 1, "strategy": "user_based", "top_n": 5})
+        r = client.post(
+            "/movies/recommend", json={"user_id": 1, "strategy": "user_based", "top_n": 5}
+        )
         assert r.status_code == 200
         body = r.json()
         assert body["strategy"] == "user_based"
@@ -161,7 +162,9 @@ class TestMovies:
         assert len(body["recommendations"]) <= 5
 
     def test_recommend_item_based(self, client):
-        r = client.post("/movies/recommend", json={"movie_id": 1, "strategy": "item_based", "top_n": 5})
+        r = client.post(
+            "/movies/recommend", json={"movie_id": 1, "strategy": "item_based", "top_n": 5}
+        )
         assert r.status_code == 200
         assert r.json()["strategy"] == "item_based"
 
@@ -195,6 +198,7 @@ class TestMovies:
 
 # ── Music ─────────────────────────────────────────────────────────────────────
 
+
 class TestMusic:
     def test_list_artists(self, client):
         r = client.get("/music/")
@@ -213,13 +217,17 @@ class TestMusic:
         assert r.status_code == 404
 
     def test_recommend_user_based(self, client):
-        r = client.post("/music/recommend", json={"user_id": 1, "strategy": "user_based", "top_n": 5})
+        r = client.post(
+            "/music/recommend", json={"user_id": 1, "strategy": "user_based", "top_n": 5}
+        )
         assert r.status_code == 200
         body = r.json()
         assert body["strategy"] == "user_based"
 
     def test_recommend_item_based(self, client):
-        r = client.post("/music/recommend", json={"artist_id": 1, "strategy": "item_based", "top_n": 5})
+        r = client.post(
+            "/music/recommend", json={"artist_id": 1, "strategy": "item_based", "top_n": 5}
+        )
         assert r.status_code == 200
 
     def test_recommend_hybrid(self, client):
@@ -237,6 +245,7 @@ class TestMusic:
 
 
 # ── RecommenderEngine unit tests ──────────────────────────────────────────────
+
 
 class TestRecommenderEngine:
     @pytest.fixture

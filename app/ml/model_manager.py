@@ -1,8 +1,7 @@
-import pickle
-import os
 import logging
+import os
+import pickle
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +30,7 @@ class ModelManager:
                 logger.warning(f"⚠️  Model not found: {path} — run scripts/train.py first")
 
     @classmethod
-    def get(cls, domain: str) -> Optional[object]:
+    def get(cls, domain: str) -> object | None:
         return cls._registry.get(domain)
 
     @classmethod
