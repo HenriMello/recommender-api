@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      target: runtime
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models        # persist trained models
+      - ./data:/app/data            # optional: custom datasets
+    environment:
+      - MODELS_DIR=/app/models
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  # Optional: run training as a one-shot service
+  trainer:
+    build:
+      context: .
+      target: runtime
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+    environment:
+      - MODELS_DIR=/app/models
+    command: ["python", "scripts/train.py", "--domain", "all"]
+    profiles:
+      - train   # only runs with: docker compose --profile train up trainer

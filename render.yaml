@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: recommender-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: MODELS_DIR
+        value: /app/models
+      - key: LOG_LEVEL
+        value: info
+    disk:
+      name: models-disk
+      mountPath: /app/models
+      sizeGB: 1
