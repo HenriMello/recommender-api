@@ -9,11 +9,12 @@ Usage:
 """
 
 import argparse
-import pickle
 import logging
-import numpy as np
-from pathlib import Path
+import pickle
 from datetime import datetime
+from pathlib import Path
+
+import numpy as np
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -24,12 +25,13 @@ MODELS_DIR.mkdir(exist_ok=True)
 
 # ── Movies (MovieLens 100K) ───────────────────────────────────────────────────
 
+
 def train_movies():
     logger.info("📥 Loading MovieLens 100K dataset...")
     try:
-        from surprise import Dataset, SVD
-        from surprise.model_selection import cross_validate
         import pandas as pd
+        from surprise import SVD, Dataset
+        from surprise.model_selection import cross_validate
     except ImportError:
         raise ImportError("Install: pip install scikit-surprise pandas")
 
@@ -44,7 +46,9 @@ def train_movies():
     # Cross-validate
     logger.info("📊 Running cross-validation...")
     results = cross_validate(svd, data, measures=["RMSE", "MAE"], cv=5, verbose=False)
-    logger.info(f"   RMSE: {np.mean(results['test_rmse']):.4f} ± {np.std(results['test_rmse']):.4f}")
+    logger.info(
+        f"   RMSE: {np.mean(results['test_rmse']):.4f} ± {np.std(results['test_rmse']):.4f}"
+    )
     logger.info(f"   MAE:  {np.mean(results['test_mae']):.4f} ± {np.std(results['test_mae']):.4f}")
 
     # Build interaction matrix
@@ -94,10 +98,25 @@ def _load_movielens_metadata() -> dict:
     from surprise import get_dataset_dir
 
     genre_labels = [
-        "unknown", "Action", "Adventure", "Animation", "Children",
-        "Comedy", "Crime", "Documentary", "Drama", "Fantasy",
-        "Film-Noir", "Horror", "Musical", "Mystery", "Romance",
-        "Sci-Fi", "Thriller", "War", "Western",
+        "unknown",
+        "Action",
+        "Adventure",
+        "Animation",
+        "Children",
+        "Comedy",
+        "Crime",
+        "Documentary",
+        "Drama",
+        "Fantasy",
+        "Film-Noir",
+        "Horror",
+        "Musical",
+        "Mystery",
+        "Romance",
+        "Sci-Fi",
+        "Thriller",
+        "War",
+        "Western",
     ]
 
     item_file = Path(get_dataset_dir()) / "ml-100k" / "ml-100k" / "u.item"
@@ -118,12 +137,13 @@ def _load_movielens_metadata() -> dict:
 
 # ── Music (Last.fm synthetic fallback) ───────────────────────────────────────
 
+
 def train_music():
     logger.info("📥 Preparing music dataset...")
     try:
-        from surprise import Dataset, Reader, SVD
-        from surprise.model_selection import cross_validate
         import pandas as pd
+        from surprise import SVD, Dataset, Reader
+        from surprise.model_selection import cross_validate
     except ImportError:
         raise ImportError("Install: pip install scikit-surprise pandas")
 
@@ -134,7 +154,9 @@ def train_music():
         df = pd.read_csv(data_path)
         df.columns = ["user_id", "artist_id", "plays"]
         # Normalize plays to 1-5 rating scale
-        df["rating"] = 1 + 4 * (df["plays"] - df["plays"].min()) / (df["plays"].max() - df["plays"].min())
+        df["rating"] = 1 + 4 * (df["plays"] - df["plays"].min()) / (
+            df["plays"].max() - df["plays"].min()
+        )
     else:
         logger.info("   Last.fm CSV not found → generating synthetic dataset")
         df = _generate_synthetic_music()
